@@ -1,16 +1,16 @@
-# PROJECT_NAME
+# bluepost
 
-PROJECT_DESCRIPTION
+bluesky bot: repost everything another account posts/reposts
 
-[![version](https://img.shields.io/pypi/v/PACKAGE_NORMALIZED.svg)](https://pypi.org/project/PACKAGE_NORMALIZED)
-[![license](https://img.shields.io/pypi/l/PACKAGE_NORMALIZED.svg)](https://github.com/GITHUB_USERNAME/GITHUB_PROJECT/blob/main/LICENSE)
+[![version](https://img.shields.io/pypi/v/bluepost.svg)](https://pypi.org/project/bluepost)
+[![license](https://img.shields.io/pypi/l/bluepost.svg)](https://github.com/amyreese/bluepost/blob/main/LICENSE)
 
 
 Install
 -------
 
 ```shell-session
-$ pip install PACKAGE_NORMALIZED
+$ pip install bluepost
 ```
 
 
@@ -18,11 +18,11 @@ Usage
 -----
 
 ```py
-import PACKAGE_NAME
+import bluepost
 ```
 
 
 License
 -------
 
-PROJECT_NAME is copyright AUTHOR_NAME, and licensed under the MIT license.
+bluepost is copyright Amethyst Reese, and licensed under the MIT license.
