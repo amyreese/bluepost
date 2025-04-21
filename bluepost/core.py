@@ -24,7 +24,7 @@ def cache_path() -> Path:
 
 @serde
 class Cache:
-    dids: dict[str, str | None] = field(default_factory=dict)
+    dids: dict[str, str] = field(default_factory=dict)
     markers: dict[str, datetime] = field(default_factory=dict)
 
     @classmethod
@@ -32,7 +32,7 @@ class Cache:
         path = cache_path()
         if path.is_file():
             LOG.debug("Loading cache")
-            return from_json(Cache, path.read_bytes())
+            return from_json(Cache, path.read_text())
         else:
             LOG.debug("No cache found")
             return Cache()
@@ -81,6 +81,7 @@ class Bluepost:
             LOG.debug("Resolving handle %s", target)
             response = client.resolve_handle(target)
             did = response.did
+            assert did is not None, f"Unresolvable handle {target}"
             self.cache.dids[target] = did
             cache.save()
         LOG.info("Target handle %r -> %r", target, did)
