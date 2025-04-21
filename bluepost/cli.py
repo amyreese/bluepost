@@ -37,6 +37,15 @@ def main(
 
 @main.command()
 @click.pass_context
+def auth(ctx: click.Context) -> None:
+    """Validate authentication"""
+    options: Options = ctx.obj
+
+    Bluepost.init(options.username, options.password)
+
+
+@main.command()
+@click.pass_context
 def run(ctx: click.Context) -> None:
     """Run once and exit"""
     options: Options = ctx.obj
