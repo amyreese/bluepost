@@ -31,7 +31,7 @@ dev = [
 ]
 
 [project.scripts]
-bluepost = "bluepost.__main__:main"
+bluepost = "bluepost.cli:run_main"
 
 [project.urls]
 Home = "https://github.com/amyreese/bluepost"

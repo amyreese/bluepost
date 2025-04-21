@@ -2,9 +2,10 @@
 # Licensed under the MIT license
 
 import logging
-from dataclasses import field
+from dataclasses import dataclass, field
 from datetime import datetime, UTC
 from pathlib import Path
+from time import monotonic, sleep
 
 import click
 import platformdirs
@@ -51,21 +52,37 @@ class Cache:
         cache.save()
 
 
-def run(username: str, password: str, target: str) -> None:
-    cache = Cache.load()
+@dataclass
+class Options:
+    dry_run: bool
 
-    try:
+
+@dataclass
+class Bluepost:
+    client: Client
+    cache: Cache
+
+    @classmethod
+    def init(cls, username: str, password: str) -> Self:
+        cache = Cache.load()
+
         LOG.info("Initializing client")
         client = Client()
         profile = client.login(username, password)
         cache.dids[username] = profile.did
         cache.save()
 
+        return Bluepost(client=client, cache=cache)
+
+    def repost(self, target: str) -> None:
+        client = self.client
+        cache = self.cache
+
         if not (did := cache.dids.get(target)):
             LOG.debug("Resolving handle %s", target)
             response = client.resolve_handle(target)
             did = response.did
-            cache.dids[target] = did
+            self.cache.dids[target] = did
             cache.save()
         LOG.info(f"Target handle %r -> %r", target, did)
 
@@ -85,9 +102,31 @@ def run(username: str, password: str, target: str) -> None:
                 )
                 client.repost(post.uri, post.cid)
 
-                cache.marker = timestamp
+                cache.markers[target] = timestamp
                 cache.save()
 
-    finally:
-        LOG.debug("Final cache object:\n%r", cache)
-        cache.save()
+    def run_once(self, target: str) -> None:
+        try:
+            self.repost(target)
+        finally:
+            LOG.debug("Final cache object: %r", self.cache)
+            self.cache.save()
+
+    def run_forever(self, target: str, *, interval: int) -> None:
+        interval = interval * 60
+
+        try:
+            before = monotonic()
+            while True:
+                self.repost(target)
+                after = monotonic()
+                LOG.debug("Repost finished in %.1f seconds", after - before)
+
+                before += interval
+                wait = before - after
+                LOG.debug("Waiting %.1f seconds...", wait)
+                sleep(wait)
+
+        finally:
+            LOG.debug("Final cache object: %r", self.cache)
+            self.cache.save()
