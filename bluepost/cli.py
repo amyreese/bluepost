@@ -2,7 +2,6 @@
 # Licensed under the MIT license
 
 import logging
-import os
 import sys
 
 from dataclasses import dataclass
@@ -63,5 +62,5 @@ def serve(ctx: click.Context, interval: int) -> None:
     blue.run_forever(options.target, interval=interval)
 
 
-def run_main():
+def run_main() -> None:
     main(auto_envvar_prefix="BLUEPOST")

@@ -1,19 +1,18 @@
 # Copyright Amethyst Reese
 # Licensed under the MIT license
 
+from __future__ import annotations
+
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime, UTC
 from pathlib import Path
 from time import monotonic, sleep
 
-import click
 import platformdirs
 from atproto import Client
-from rich import print
 from serde import serde
 from serde.json import from_json, to_json
-from typing_extensions import Self
 
 LOG = logging.getLogger(__name__)
 logging.getLogger("httpcore").setLevel(logging.WARNING)
@@ -25,11 +24,11 @@ def cache_path() -> Path:
 
 @serde
 class Cache:
-    dids: dict[str, str] = field(default_factory=dict)
+    dids: dict[str, str | None] = field(default_factory=dict)
     markers: dict[str, datetime] = field(default_factory=dict)
 
     @classmethod
-    def load(cls) -> Self:
+    def load(cls) -> Cache:
         path = cache_path()
         if path.is_file():
             LOG.debug("Loading cache")
@@ -63,7 +62,7 @@ class Bluepost:
     cache: Cache
 
     @classmethod
-    def init(cls, username: str, password: str) -> Self:
+    def init(cls, username: str, password: str) -> Bluepost:
         cache = Cache.load()
 
         LOG.info("Initializing client")
@@ -84,7 +83,7 @@ class Bluepost:
             did = response.did
             self.cache.dids[target] = did
             cache.save()
-        LOG.info(f"Target handle %r -> %r", target, did)
+        LOG.info("Target handle %r -> %r", target, did)
 
         threshold = cache.markers.setdefault(target, datetime.now(UTC))
         data = client.get_author_feed(did, filter="posts_and_author_threads", limit=5)
