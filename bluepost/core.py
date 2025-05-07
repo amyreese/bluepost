@@ -9,8 +9,8 @@ import threading
 from dataclasses import dataclass, field
 from datetime import datetime, UTC
 from pathlib import Path
-from time import monotonic, sleep
-from typing import Any
+from time import monotonic
+from types import FrameType
 
 import platformdirs
 from atproto import Client
@@ -120,7 +120,7 @@ class Bluepost:
         running = True
         event = threading.Event()
 
-        def stop(sig: signal.Signals, frame: Any) -> None:
+        def stop(sig: int, frame: FrameType | None) -> None:
             nonlocal running
             LOG.info("%s -- Stopping...", signal.strsignal(sig))
             running = False
