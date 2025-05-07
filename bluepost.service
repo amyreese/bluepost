@@ -1,0 +1,17 @@
+[Unit]
+Description=bluepost
+After=network.target
+
+[Service]
+Type=simple
+User=mastodon
+
+Environment="BLUEPOST_USERNAME="
+Environment="BLUEPOST_PASSWORD="
+Environment="BLUEPOST_TARGET="
+
+ExecStart=bluepost serve
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
