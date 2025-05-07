@@ -4,10 +4,13 @@
 from __future__ import annotations
 
 import logging
+import signal
+import threading
 from dataclasses import dataclass, field
 from datetime import datetime, UTC
 from pathlib import Path
 from time import monotonic, sleep
+from typing import Any
 
 import platformdirs
 from atproto import Client
@@ -114,19 +117,41 @@ class Bluepost:
 
     def run_forever(self, target: str, *, interval: int) -> None:
         interval = interval * 60
+        running = True
+        event = threading.Event()
 
-        try:
-            before = monotonic()
-            while True:
+        def stop(sig: signal.Signals, frame: Any) -> None:
+            nonlocal running
+            LOG.info("%s -- Stopping...", signal.strsignal(sig))
+            running = False
+            event.set()
+
+        signal.signal(signal.SIGTERM, stop)
+        signal.signal(signal.SIGINT, stop)
+
+        before = monotonic()
+        error_count = 0
+        while running:
+            try:
                 self.repost(target)
-                after = monotonic()
-                LOG.debug("Repost finished in %.1f seconds", after - before)
 
+            except Exception:
+                error_count += 1
+                LOG.exception("Exception #%s", error_count)
+
+                if error_count > 5:
+                    LOG.error("Too many continuous errors, exiting")
+                    raise
+
+            else:
+                error_count = 0
+
+            finally:
+                after = monotonic()
                 before += interval
                 wait = before - after
                 LOG.debug("Waiting %.1f seconds...", wait)
-                sleep(wait)
+                event.wait(timeout=wait)
 
-        finally:
-            LOG.debug("Final cache object: %r", self.cache)
-            self.cache.save()
+        LOG.debug("Final cache object: %r", self.cache)
+        self.cache.save()
